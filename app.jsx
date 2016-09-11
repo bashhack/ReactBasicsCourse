@@ -18,6 +18,62 @@ var PLAYERS = [
 
 var nextId = 4;
 
+var Stopwatch = React.createClass({
+  getInitialState: function getInitialState() {
+    return {
+      running: false,
+      elapsedTime: 0,
+      previousTime: 0,
+    }
+  },
+
+  onTick: function onTick() {
+    if (this.state.running) {
+      var now = Date.now();
+      this.setState({
+        previousTime: now,
+        elapsedTime: this.state.elapsedTime + (now - this.state.previousTime),
+      })
+    }
+  },
+
+  componentDidMount: function componentDidMount() {
+    this.interval = setInterval(this.onTick, 100);
+  },
+
+  componentWillUnmount: function componentWillUnmount() {
+    clearInterval(this.interval);
+  },
+
+  onStop: function onStop() {
+    this.setState({ running: false })
+  },
+
+  onStart: function onStart() {
+    this.setState({ running: true, previousTime: Date.now() })
+  },
+
+  onReset: function onReset() {
+    this.setState({ elapsedTime: 0, previousTime: Date.now() })
+  },
+
+  render: function render() {
+    var seconds = Math.floor(this.state.elapsedTime / 1000);
+
+    return (
+      <div className="stopwatch">
+        <h2>Stopwatch</h2>
+        <div className="stopwatch-time">{seconds}</div>
+        {this.state.running ?
+         <button onClick={this.onStop}>Stop</button>
+         :
+         <button onClick={this.onStart}>Start</button>}
+        <button onClick={this.onReset}>Reset</button>
+      </div>
+   )
+  },
+})
+
 function Stats(props) {
   var totalPlayers = props.players.length;
   var totalPoints = props.players.reduce(function (total, player) {
@@ -83,6 +139,7 @@ function Header(props) {
     <div className="header">
       <Stats players={props.players} />
       <h1>{props.title}</h1>
+      <Stopwatch />
     </div>
   );
 }
@@ -168,7 +225,6 @@ var Application = React.createClass({
 
   onRemove: function onRemove(playerIndex, name) {
     /* console.log('Player removed:', name);*/
-
     this.state.players.splice(playerIndex, 1);
     this.setState(this.state);
   },
